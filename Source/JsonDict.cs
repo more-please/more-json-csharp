@@ -2,7 +2,7 @@
 
 namespace More.Json
 {
-	public class JsonDict : SortedDictionary<string, object>
+    public class JsonDict : OrderPreservingDictionary<string, object>
 	{
 		public void Add(string key, IJsonValue val)
 		{
