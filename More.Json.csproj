@@ -30,12 +30,15 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IJsonValue.cs" />
-    <Compile Include="JsonDict.cs" />
-    <Compile Include="JsonReader.cs" />
-    <Compile Include="JsonWriter.cs" />
-    <Compile Include="JsonList.cs" />
-    <Compile Include="Extensions.cs" />
+    <Compile Include="Source\Extensions.cs" />
+    <Compile Include="Source\IJsonValue.cs" />
+    <Compile Include="Source\JsonDict.cs" />
+    <Compile Include="Source\JsonList.cs" />
+    <Compile Include="Source\JsonReader.cs" />
+    <Compile Include="Source\JsonWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>

@@ -39,8 +39,7 @@ namespace More.Json
 				encoderShouldEmitUTF8Identifier: false,
 				throwOnInvalidBytes: true);
 			var writer = new StreamWriter(stream, utf8, bufferSize, leaveOpen);
-			using (var json = new JsonWriter(writer))
-				json.WriteValue(obj);
+            Write(obj, writer);
 		}
 
 		// ---------------------------------------------------------------------
@@ -64,7 +63,7 @@ namespace More.Json
 			{
 				WriteString(obj as string);
 			}
-			else if (obj is Int16 || obj is Int32 || obj is Int64 || obj is Enum)
+            else if (obj is Int16 || obj is Int32 || obj is Int64 || obj is Enum || obj is Char)
 			{
 				WriteInt(Convert.ToInt64(obj));
 			}
