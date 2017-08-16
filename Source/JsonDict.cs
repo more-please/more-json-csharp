@@ -2,24 +2,9 @@
 
 namespace More.Json
 {
-    public class JsonDict : OrderPreservingDictionary<string, object>
+	public class JsonDict : OrderPreservingDictionary<string, object>
 	{
-		public void Add(string key, IJsonValue val)
-		{
-			base.Add(key, val.ToJsonValue());
-		}
-
-		public void Add<L, T>(string key, IEnumerable<T> val)
-			where T : IJsonValue
-		{
-			base.Add(key, val.ToJsonValue());
-		}
-
-		public void Add<D, T>(string key, D val)
-			where D : IDictionary<string, T>
-			where T : IJsonValue
-		{
-			base.Add(key, val.ToJsonValue());
-		}
+		public JsonDict() { }
+		public JsonDict(int capacity) : base(capacity) { }
 	}
 }

@@ -167,7 +167,7 @@ namespace More.Json
                         case 'r': c = '\r'; break;
                         case 't': c = '\t'; break;
                         case 'u': c = Unicode(); break;
-                        default: throw Error("unknown escape code"); break;
+                        default: throw Error("unknown escape code");
                     }
                 }
                 result.Append((char)c);
@@ -177,7 +177,7 @@ namespace More.Json
 
         public IList<object> ReadArray()
         {
-            var result = new List<object>();
+			var result = new JsonList();
             Expect('[');
             Trim();
             if (Maybe(']'))
@@ -197,7 +197,7 @@ namespace More.Json
 
         public IDictionary<string, object> ReadDict()
         {
-            var result = new SortedDictionary<string, object>();
+			var result = new JsonDict();
             Expect('{');
             Trim();
             if (Maybe('}'))

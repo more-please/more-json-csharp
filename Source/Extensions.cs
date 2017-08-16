@@ -6,22 +6,6 @@ namespace More.Json
 {
 	public static class Extensions
 	{
-		public static IEnumerable<object> ToJsonValue<T>(this IEnumerable<T> list) where T : IJsonValue
-		{
-			var result = new List<object>();
-			foreach (var t in list)
-				result.Add(t.ToJsonValue());
-			return result;
-		}
-
-		public static IDictionary<string, object> ToJsonValue<T>(this IDictionary<string, T> dict) where T : IJsonValue
-		{
-			var result = new JsonDict();
-			foreach (var t in dict)
-				result.Add(t.Key, t.Value);
-			return result;
-		}
-
 		public static IDictionary<string, object> AsJsonDict(this object obj)
 		{
 			if (obj is IDictionary<string, object>)
