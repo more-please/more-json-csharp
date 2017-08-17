@@ -3,77 +3,105 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Globalization;
+using System.Collections.Immutable;
 
 namespace More.Json
 {
+	using JsonArrayItems = IEnumerable<object>;
+	using JsonDictItems = IEnumerable<KeyValuePair<string, object>>;
+
 	public class JsonReader : IDisposable
 	{
-		public delegate IList<object> ListBuilder(IEnumerable<object> items);
-		public delegate IDictionary<string, object> DictBuilder(IEnumerable<KeyValuePair<string, object>> pairs);
+		public delegate IList<object> ArrayBuilder(JsonArrayItems items);
+		public delegate IDictionary<string, object> DictBuilder(JsonDictItems items);
 
 		// ---------------------------------------------------------------------
 		// Constructor and convenience functions
 
 		public JsonReader(
-			TextReader reader, bool leaveOpen = false, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
+			TextReader reader, bool leaveOpen = false, ArrayBuilder array = null, DictBuilder dict = null)
 		{
 			_reader = reader;
 			_dispose = !leaveOpen;
-			_list = listBuilder ?? List;
-			_dict = dictBuilder ?? Dictionary;
+			_array = array ?? List;
+			_dict = dict ?? Dictionary;
 		}
 
-		public static object Read(string str, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
+		public static object Read(string str, ArrayBuilder array = null, DictBuilder dict = null)
 		{
-			using (var r = new JsonReader(new StringReader(str), listBuilder: listBuilder, dictBuilder: dictBuilder))
+			using (var r = new JsonReader(new StringReader(str), array: array, dict: dict))
 				return r.ReadValue();
 		}
 
 		public static object Read(
-			TextReader reader, bool leaveOpen = false, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
+			TextReader reader, bool leaveOpen = false, ArrayBuilder array = null, DictBuilder dict = null)
 		{
-			using (var r = new JsonReader(reader, leaveOpen: leaveOpen, listBuilder: listBuilder, dictBuilder: dictBuilder))
+			using (var r = new JsonReader(reader, leaveOpen: leaveOpen, array: array, dict: dict))
 				return r.ReadValue();
 		}
 
 		public static object Read(
-			Stream stream, bool leaveOpen = false, int bufferSize = 4096, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
+			Stream stream, bool leaveOpen = false, int bufferSize = 4096, ArrayBuilder array = null, DictBuilder dict = null)
 		{
 			var utf8 = new UTF8Encoding(
 				encoderShouldEmitUTF8Identifier: false,
 				throwOnInvalidBytes: true);
 			var reader = new StreamReader(stream, utf8, true, bufferSize, leaveOpen);
-			using (var json = new JsonReader(reader, listBuilder: listBuilder, dictBuilder: dictBuilder))
+			using (var json = new JsonReader(reader, array: array, dict: dict))
 				return json.ReadValue();
 		}
 
 		// ---------------------------------------------------------------------
 		// List and dictionary creation
 
-		public static IList<object> List(IEnumerable<object> items)
+		public static List<object> List(JsonArrayItems items)
 		{
 			return new List<object>(items);
 		}
 
-		public static IList<object> ImmutableArray(IEnumerable<object> items)
+		public static IList<object> Immutable(JsonArrayItems items)
 		{
-			return System.Collections.Immutable.ImmutableArray.CreateRange(items);
+			return ImmutableArray.CreateRange(items);
 		}
 
-		public static IDictionary<string, object> Dictionary(IEnumerable<KeyValuePair<string, object>> pairs)
+		public static Dictionary<string, object> Dictionary(JsonDictItems items)
 		{
 			var result = new Dictionary<string, object>();
-			foreach (var p in pairs)
+			foreach (var p in items)
 				result.Add(p.Key, p.Value);
 			return result;
 		}
 
-		public static IDictionary<string, object> ImmutableDictionary(IEnumerable<KeyValuePair<string, object>> pairs)
+		public static ImmutableDictionary<string, object> Immutable(JsonDictItems items)
 		{
-			var result = System.Collections.Immutable.ImmutableDictionary.CreateBuilder<string, object>();
-			foreach (var p in pairs)
+			var result = ImmutableDictionary.CreateBuilder<string, object>();
+			foreach (var p in items)
 				result.Add(p.Key, p.Value);
 			return result.ToImmutable();
+		}
+
+		public static SortedDictionary<string, object> Sorted(JsonDictItems items)
+		{
+			var result = new SortedDictionary<string, object>();
+			foreach (var p in items)
+				result.Add(p.Key, p.Value);
+			return result;
+		}
+
+		public static ImmutableSortedDictionary<string, object> ImmutableSorted(JsonDictItems items)
+		{
+			var result = ImmutableSortedDictionary.CreateBuilder<string, object>();
+			foreach (var p in items)
+				result.Add(p.Key, p.Value);
+			return result.ToImmutable();
+		}
+
+		public static IDictionary<string, object> OrderPreserving(JsonDictItems items)
+		{
+			var result = new JsonDict();
+			foreach (var p in items)
+				result.Add(p.Key, p.Value);
+			return result;
 		}
 
 		// ---------------------------------------------------------------------
@@ -205,9 +233,9 @@ namespace More.Json
 			Trim();
 			if (Maybe(']'))
 			{
-				return _list(NoElements);
+				return _array(NoArrayItems);
 			}
-			var result = _list(ReadArrayElements());
+			var result = _array(ReadArrayItems());
 			Expect(']');
 			return result;
 		}
@@ -218,14 +246,14 @@ namespace More.Json
 			Trim();
 			if (Maybe('}'))
 			{
-				return _dict(NoPairs);
+				return _dict(NoDictItems);
 			}
-			var result = _dict(ReadPairs());
+			var result = _dict(ReadDictItems());
 			Expect('}');
 			return result;
 		}
 
-		public IEnumerable<object> ReadArrayElements()
+		public JsonArrayItems ReadArrayItems()
 		{
 			do
 			{
@@ -235,10 +263,11 @@ namespace More.Json
 			while (Maybe(','));
 		}
 
-		public IEnumerable<KeyValuePair<string, object>> ReadPairs()
+		public JsonDictItems ReadDictItems()
 		{
 			do
 			{
+				Trim();
 				string key = ReadString();
 				Trim();
 				Expect(':');
@@ -249,8 +278,8 @@ namespace More.Json
 			while (Maybe(','));
 		}
 
-		private static readonly object[] NoElements = { };
-		private static readonly KeyValuePair<string, object>[] NoPairs = { };
+		private static readonly object[] NoArrayItems = { };
+		private static readonly KeyValuePair<string, object>[] NoDictItems = { };
 
 		// ---------------------------------------------------------------------
 		// Intermediate parsing constructs
@@ -372,7 +401,7 @@ namespace More.Json
 
 		private readonly TextReader _reader;
 		private readonly bool _dispose;
-		private readonly ListBuilder _list;
+		private readonly ArrayBuilder _array;
 		private readonly DictBuilder _dict;
 		private int _pos;
 		private StringBuilder _capture = new StringBuilder();
