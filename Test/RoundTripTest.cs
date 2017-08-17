@@ -49,6 +49,15 @@ namespace More.Json.Test
             RoundTrip(Double.Epsilon, Convert.ToDouble);
         }
 
+		[Test]
+		public void TestDictWithRepeatedKeys()
+		{
+			var json = "{\"one\":1,\"one\":2,\"two\":2}";
+			object obj = JsonReader.Read(json, dict: JsonReader.OrderPreserving);
+			var result = JsonWriter.ToString(obj);
+			Assert.AreEqual(json, result);
+		}
+
         private void RoundTrip<T>(T original, Func<object, T> convert)
         {
             string json = JsonWriter.ToString(original);
