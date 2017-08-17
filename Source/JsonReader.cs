@@ -246,7 +246,7 @@ namespace More.Json
 			Trim();
 			if (Maybe('}'))
 			{
-				return _dict(NoDictItems);
+				return _dict(Noitems);
 			}
 			var result = _dict(ReadDictItems());
 			Expect('}');
@@ -279,7 +279,7 @@ namespace More.Json
 		}
 
 		private static readonly object[] NoArrayItems = { };
-		private static readonly KeyValuePair<string, object>[] NoDictItems = { };
+		private static readonly KeyValuePair<string, object>[] Noitems = { };
 
 		// ---------------------------------------------------------------------
 		// Intermediate parsing constructs
