@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace More.Json
+﻿namespace More.Json
 {
 	public class JsonDict : OrderPreservingDictionary<string, object>
 	{
