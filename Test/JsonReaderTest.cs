@@ -79,14 +79,21 @@ namespace More.Json.Test
 			var arr = JsonReader.Read(json);
 			Assert.That(arr is List<object>);
 
-			var arr2 = JsonReader.Read(json, array:JsonReader.List);
-			Assert.That(arr is List<object>);
+			var arr2 = JsonReader.ReadSorted(json);
+			Assert.That(arr2 is List<object>);
 			Assert.AreEqual(arr, arr2);
 
-			arr2 = JsonReader.Read(json, array: JsonReader.Immutable);
+			arr2 = JsonReader.ReadImmutable(json);
 			Assert.That(arr2 is ImmutableArray<object>);
 			Assert.AreEqual(arr, arr2);
 
+			arr2 = JsonReader.ReadImmutableSorted(json);
+			Assert.That(arr2 is ImmutableArray<object>);
+			Assert.AreEqual(arr, arr2);
+
+			arr2 = JsonReader.ReadOrderPreserving(json);
+			Assert.That(arr2 is List<object>);
+			Assert.AreEqual(arr, arr2);
 		}
 
 		[Test]
@@ -96,23 +103,19 @@ namespace More.Json.Test
 			var dict = JsonReader.Read(json);
 			Assert.That(dict is Dictionary<string, object>);
 
-			var dict2 = JsonReader.Read(json, dict: JsonReader.Dictionary);
-			Assert.That(dict2 is Dictionary<string, object>);
-			Assert.AreEqual(dict, dict2);
-
-			dict2 = JsonReader.Read(json, dict: JsonReader.Sorted);
+			var dict2 = JsonReader.ReadSorted(json);
 			Assert.That(dict2 is SortedDictionary<string, object>);
 			Assert.AreEqual(dict, dict2);
 
-			dict2 = JsonReader.Read(json, dict: JsonReader.Immutable);
+			dict2 = JsonReader.ReadImmutable(json);
 			Assert.That(dict2 is ImmutableDictionary<string, object>);
 			Assert.AreEqual(dict, dict2);
 
-			dict2 = JsonReader.Read(json, dict: JsonReader.ImmutableSorted);
+			dict2 = JsonReader.ReadImmutableSorted(json);
 			Assert.That(dict2 is ImmutableSortedDictionary<string, object>);
 			Assert.AreEqual(dict, dict2);
 
-			dict2 = JsonReader.Read(json, dict: JsonReader.OrderPreserving);
+			dict2 = JsonReader.ReadOrderPreserving(json);
 			Assert.That(dict2 is OrderPreservingDictionary<string, object>);
 			Assert.AreEqual(dict, dict2);
 		}

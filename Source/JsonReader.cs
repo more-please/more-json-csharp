@@ -33,6 +33,26 @@ namespace More.Json
 				return r.ReadValue();
 		}
 
+		public static object ReadSorted(string str)
+		{
+			return Read(str, dict: Sorted);
+		}
+
+		public static object ReadImmutable(string str)
+		{
+			return Read(str, array: Immutable, dict: Immutable);
+		}
+
+		public static object ReadImmutableSorted(string str)
+		{
+			return Read(str, array: Immutable, dict: ImmutableSorted);
+		}
+
+		public static object ReadOrderPreserving(string str)
+		{
+			return Read(str, dict: OrderPreserving);
+		}
+
 		public static object Read(
 			TextReader reader, bool leaveOpen = false, ArrayBuilder array = null, DictBuilder dict = null)
 		{
