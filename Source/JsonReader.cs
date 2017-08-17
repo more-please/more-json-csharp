@@ -8,48 +8,72 @@ namespace More.Json
 {
 	public class JsonReader : IDisposable
 	{
+		public delegate IList<object> ListBuilder(IEnumerable<object> items);
+		public delegate IDictionary<string, object> DictBuilder(IEnumerable<KeyValuePair<string, object>> pairs);
+
 		// ---------------------------------------------------------------------
 		// Constructor and convenience functions
 
-		public JsonReader(TextReader reader, bool leaveOpen = false)
+		public JsonReader(
+			TextReader reader, bool leaveOpen = false, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
 		{
 			_reader = reader;
 			_dispose = !leaveOpen;
+			_list = listBuilder ?? List;
+			_dict = dictBuilder ?? Dictionary;
 		}
 
-		public static object Read(string str)
+		public static object Read(string str, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
 		{
-			using (var r = new JsonReader(new StringReader(str)))
+			using (var r = new JsonReader(new StringReader(str), listBuilder: listBuilder, dictBuilder: dictBuilder))
 				return r.ReadValue();
 		}
 
-		public static object Read(TextReader reader, bool leaveOpen = false)
+		public static object Read(
+			TextReader reader, bool leaveOpen = false, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
 		{
-			using (var r = new JsonReader(reader, leaveOpen))
+			using (var r = new JsonReader(reader, leaveOpen: leaveOpen, listBuilder: listBuilder, dictBuilder: dictBuilder))
 				return r.ReadValue();
 		}
 
-		public static object Read(Stream stream, bool leaveOpen = false, int bufferSize = 4096)
+		public static object Read(
+			Stream stream, bool leaveOpen = false, int bufferSize = 4096, ListBuilder listBuilder = null, DictBuilder dictBuilder = null)
 		{
 			var utf8 = new UTF8Encoding(
 				encoderShouldEmitUTF8Identifier: false,
 				throwOnInvalidBytes: true);
 			var reader = new StreamReader(stream, utf8, true, bufferSize, leaveOpen);
-			using (var json = new JsonReader(reader))
+			using (var json = new JsonReader(reader, listBuilder: listBuilder, dictBuilder: dictBuilder))
 				return json.ReadValue();
 		}
 
 		// ---------------------------------------------------------------------
-		// Override hooks
+		// List and dictionary creation
 
-		public virtual IDictionary<string, object> NewDict()
+		public static IList<object> List(IEnumerable<object> items)
 		{
-			return new Dictionary<string, object>();
+			return new List<object>(items);
 		}
 
-		public virtual IList<object> NewArray()
+		public static IList<object> ImmutableArray(IEnumerable<object> items)
 		{
-			return new List<object>();
+			return System.Collections.Immutable.ImmutableArray.CreateRange(items);
+		}
+
+		public static IDictionary<string, object> Dictionary(IEnumerable<KeyValuePair<string, object>> pairs)
+		{
+			var result = new Dictionary<string, object>();
+			foreach (var p in pairs)
+				result.Add(p.Key, p.Value);
+			return result;
+		}
+
+		public static IDictionary<string, object> ImmutableDictionary(IEnumerable<KeyValuePair<string, object>> pairs)
+		{
+			var result = System.Collections.Immutable.ImmutableDictionary.CreateBuilder<string, object>();
+			foreach (var p in pairs)
+				result.Add(p.Key, p.Value);
+			return result.ToImmutable();
 		}
 
 		// ---------------------------------------------------------------------
@@ -177,47 +201,56 @@ namespace More.Json
 
 		public IList<object> ReadArray()
 		{
-			var result = new JsonList();
 			Expect('[');
 			Trim();
 			if (Maybe(']'))
 			{
-				return result;
+				return _list(NoElements);
 			}
-			do
-			{
-				object item = ReadValue();
-				result.Add(item);
-				Trim();
-			}
-			while (Maybe(','));
+			var result = _list(ReadArrayElements());
 			Expect(']');
 			return result;
 		}
 
 		public IDictionary<string, object> ReadDict()
 		{
-			var result = new JsonDict();
 			Expect('{');
 			Trim();
 			if (Maybe('}'))
 			{
-				return result;
+				return _dict(NoPairs);
 			}
+			var result = _dict(ReadPairs());
+			Expect('}');
+			return result;
+		}
+
+		public IEnumerable<object> ReadArrayElements()
+		{
 			do
 			{
+				yield return ReadValue();
 				Trim();
+			}
+			while (Maybe(','));
+		}
+
+		public IEnumerable<KeyValuePair<string, object>> ReadPairs()
+		{
+			do
+			{
 				string key = ReadString();
 				Trim();
 				Expect(':');
 				object val = ReadValue();
-				result.Add(key, val);
+				yield return new KeyValuePair<string, object>(key, val);
 				Trim();
 			}
 			while (Maybe(','));
-			Expect('}');
-			return result;
 		}
+
+		private static readonly object[] NoElements = { };
+		private static readonly KeyValuePair<string, object>[] NoPairs = { };
 
 		// ---------------------------------------------------------------------
 		// Intermediate parsing constructs
@@ -339,7 +372,9 @@ namespace More.Json
 
 		private readonly TextReader _reader;
 		private readonly bool _dispose;
+		private readonly ListBuilder _list;
+		private readonly DictBuilder _dict;
 		private int _pos;
-		private StringBuilder _capture;
+		private StringBuilder _capture = new StringBuilder();
 	}
 }
