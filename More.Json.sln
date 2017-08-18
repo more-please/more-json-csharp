@@ -1,9 +1,9 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "More.Json.Test", "Test\More.Json.Test.csproj", "{E8F9D930-27CD-469B-9B8F-59A1E8E15C95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "More.Json.Test", "More.Json.Test\More.Json.Test.csproj", "{E8F9D930-27CD-469B-9B8F-59A1E8E15C95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "More.Json", "Source\More.Json.csproj", "{55393969-9DDD-43E0-9000-B2FDB1F4EE2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "More.Json", "More.Json\More.Json.csproj", "{55393969-9DDD-43E0-9000-B2FDB1F4EE2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

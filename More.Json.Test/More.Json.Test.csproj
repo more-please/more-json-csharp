@@ -42,7 +42,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Source\More.Json.csproj">
+    <ProjectReference Include="..\More.Json\More.Json.csproj">
       <Project>{55393969-9DDD-43E0-9000-B2FDB1F4EE2E}</Project>
       <Name>More.Json</Name>
     </ProjectReference>
